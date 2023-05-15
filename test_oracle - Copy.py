@@ -60,47 +60,47 @@ def main():
         page.goto('https://www.google.com/maps', timeout=60000)
         # wait is added for dev phase. can remove it in production
         # page.wait_for_timeout(5000)
-        # citi_list_1 = ["Bac Lieu",
-        #     "Ben Thuy",
-        #     "Ben Tre",
-        #     "Bien Hoa",
-        #     "Buon Me Thuot",
-        #     "Cam Ranh",
-        #     "Can Tho",
-        #     "Cao Lanh",
-        #     "Cho Lon",
-        #     "Con Son",
-        #     "Da Lat",
-        #     "Da Nang",
-        #     "Ha Long",
-        #     "Hai Duong",
-        #     "Haiphong",
-        #     "Hanoi",
-        #     "Ho Chi Minh City",
-        #     "Hoa Binh",
-        #     "Hue",
-        #     "Kon Tum",
-        #     "Lao Cai",
-        #     "Long Xuyen",
-        #     "My Tho",
-        #     "Nam Dinh",
-        #     "Nha Trang",
-        #     "Phan Thiet",
-        #     "Pleiku",
-        #     "Quang Ngai",
-        #     "Qui Nhon",
-        #     "Rach Gia",
-        #     "Sa Dec",
-        #     "Tay Ninh",
-        #     "Thai Binh",
-        #     "Thai Nguyen",
-        #     "Thanh Hoa",
-        #     "Thu Dau Mot",
-        #     "Tuy Hoa",
-        #     "Vinh",
-        #     "Vinh Long",
-        #     "Vung Tau"]
-        citi_list_1=["Hung Yen", "Ha Noi"]
+        citi_list_1 = ["Bac Lieu",
+            "Ben Thuy",
+            "Ben Tre",
+            "Bien Hoa",
+            "Buon Me Thuot",
+            "Cam Ranh",
+            "Can Tho",
+            "Cao Lanh",
+            "Cho Lon",
+            "Con Son",
+            "Da Lat",
+            "Da Nang",
+            "Ha Long",
+            "Hai Duong",
+            "Haiphong",
+            "Hanoi",
+            "Ho Chi Minh City",
+            "Hoa Binh",
+            "Hue",
+            "Kon Tum",
+            "Lao Cai",
+            "Long Xuyen",
+            "My Tho",
+            "Nam Dinh",
+            "Nha Trang",
+            "Phan Thiet",
+            "Pleiku",
+            "Quang Ngai",
+            "Qui Nhon",
+            "Rach Gia",
+            "Sa Dec",
+            "Tay Ninh",
+            "Thai Binh",
+            "Thai Nguyen",
+            "Thanh Hoa",
+            "Thu Dau Mot",
+            "Tuy Hoa",
+            "Vinh",
+            "Vinh Long",
+            "Vung Tau"]
+        # citi_list_1=["Hung Yen", "Ha Noi"]
         for x in citi_list_1:
             page.locator('//input[@id="searchboxinput"]').fill(f'Hotels {x}')
             # page.wait_for_timeout(3000)
@@ -205,31 +205,6 @@ def main():
                 print("Insert completed")                
         browser.close()
 
-def ETL_SQL():
-    # cx_Oracle.init_oracle_client(lib_dir=r"D:\instantclient_21_10")
-
-    conn=None
-    connStr= 'test_code/Oracle123@10.0.223.163:1521/bcadb'
-    try:
-        conn=cx_Oracle.connect(connStr)
-        cur= conn.cursor()
-        sqlTxt='insert into test_transform (\
-                select name, address, website, phone_number, trunc(avg(reviews_count)), round(avg(reviews_average),1)\
-                from test_insert\
-                group by name, address, website, phone_number)'
-        cur.execute(sqlTxt)
-        conn.commit()
-        print('finished transform')
-    except Exception as err:
-        print('Error while inserting rows')
-        print(err)
-    finally:
-        if(conn):
-        #close the cursor object to avoid memory leaks
-            cur.close()
-            #close the connection as well
-            conn.close()
-
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
@@ -292,5 +267,4 @@ if __name__ == "__main__":
         total = 10
         
     main()
-    ETL_SQL()
 
