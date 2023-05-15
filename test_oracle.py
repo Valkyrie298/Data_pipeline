@@ -3,6 +3,7 @@ from dataclasses import dataclass, asdict, field
 import pandas as pd
 import argparse
 import re
+import geocoder
 import cx_Oracle
 
 
@@ -18,6 +19,8 @@ class Business:
     phone_number: str = None
     reviews_count: int = None
     reviews_average: float = None
+    long: float = None
+    lat: float = None
 
 @dataclass
 class BusinessList:
@@ -54,7 +57,7 @@ def main():
     
     with sync_playwright() as p:
         
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         
         page.goto('https://www.google.com/maps', timeout=60000)
@@ -154,8 +157,19 @@ def main():
                     business.name = ''
                 if page.locator(address_xpath).count() > 0:
                     business.address = page.locator(address_xpath).inner_text()
+                    # business.lat= geocoder(location=page.locator(address_xpath).inner_text()).latlng[0]
+                    # business.long= geocoder(location=page.locator(address_xpath).inner_text()).latlng[1]
+                    if geocoder.arcgis(location=page.locator(address_xpath).inner_text()) != None:
+
+                        result = geocoder.arcgis(location=page.locator(address_xpath).inner_text())
+                        business.lat,business.long = result.latlng
+                    else:
+                        business.lat=''
+                        business.long=''
                 else:
                     business.address = ''
+                    business.lat= ''
+                    business.long=''
                 if page.locator(website_xpath).count() > 0:
                     business.website = page.locator(website_xpath).inner_text()
                 else:
@@ -167,42 +181,43 @@ def main():
                 if listing.locator(reviews_span_xpath).count() > 0:
                     business.reviews_average = float(listing.locator(reviews_span_xpath).get_attribute('aria-label').split()[0].replace(',','.').strip())
                     business.reviews_count = int(re.sub(r'[\W_]','',listing.locator(reviews_span_xpath).get_attribute('aria-label').split()[2].strip()))
-                    print(listing.locator(reviews_span_xpath).get_attribute('aria-label'))
+                    # print(listing.locator(reviews_span_xpath).get_attribute('aria-label'))
                 else:
                     business.reviews_average = ''
                     business.reviews_count = ''
                     
                 business_list.business_list.append(business)
-                df= business_list.dataframe()
-                dataInsertionTuples= [tuple(x) for x in df.values]
-                connStr= 'test_code/Oracle123@10.0.223.163:1521/bcadb'
-                conn = None
+                print(business_list.business_list[0])
+                # df= business_list.dataframe()
+                # dataInsertionTuples= [tuple(x) for x in df.values]
+                # connStr= 'test_code/Oracle123@10.0.223.163:1521/bcadb'
+                # conn = None
 
-                #correct the instant client path
+                # #correct the instant client path
                 
-                try:
-                    conn= cx_Oracle.connect(connStr)
-                    cur = conn.cursor()
-                    sqlTxt='INSERT INTO test_insert\
-                            (name, address, website, phone_number, reviews_count, reviews_average)\
-                            VALUES (:1, :2, :3, :4, :5, :6)'
-                    cur.executemany(sqlTxt, [x for x in dataInsertionTuples])
-                    rowCount= cur.rowcount
-                    print("number of rows inserted", rowCount)
+                # try:
+                #     conn= cx_Oracle.connect(connStr)
+                #     cur = conn.cursor()
+                #     sqlTxt='INSERT INTO test_insert\
+                #             (name, address, website, phone_number, reviews_count, reviews_average)\
+                #             VALUES (:1, :2, :3, :4, :5, :6)'
+                #     cur.executemany(sqlTxt, [x for x in dataInsertionTuples])
+                #     rowCount= cur.rowcount
+                #     print("number of rows inserted", rowCount)
 
-                    #commit
-                    conn.commit()
+                #     #commit
+                #     conn.commit()
 
-                except Exception as err:
-                    print('Error while inserting rows')
-                    print(err)
-                finally:
-                    if(conn):
-                        #close the cursor object to avoid memory leaks
-                        cur.close()
-                        #close the connection as well
-                        conn.close()
-                print("Insert completed")                
+                # except Exception as err:
+                #     print('Error while inserting rows')
+                #     print(err)
+                # finally:
+                #     if(conn):
+                #         #close the cursor object to avoid memory leaks
+                #         cur.close()
+                #         #close the connection as well
+                #         conn.close()
+                # print("Insert completed")                
         browser.close()
 
 def ETL_SQL():
@@ -289,8 +304,8 @@ if __name__ == "__main__":
     if args.total:
         total = args.total
     else:
-        total = 10
+        total = 5
         
     main()
-    ETL_SQL()
+    # ETL_SQL()
 
