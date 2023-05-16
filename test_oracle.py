@@ -157,9 +157,7 @@ def main():
                     business.name = ''
                 if page.locator(address_xpath).count() > 0:
                     business.address = page.locator(address_xpath).inner_text()
-                    # business.lat= geocoder(location=page.locator(address_xpath).inner_text()).latlng[0]
-                    # business.long= geocoder(location=page.locator(address_xpath).inner_text()).latlng[1]
-                    if geocoder.arcgis(location=page.locator(address_xpath).inner_text()) != None:
+                    if page.locator(address_xpath).inner_text() != None:
 
                         result = geocoder.arcgis(location=page.locator(address_xpath).inner_text())
                         business.lat,business.long = result.latlng
