@@ -187,6 +187,8 @@ def main():
                 df= business_list.dataframe()
                 df['long']=df['long'].fillna(0)
                 df['lat']= df['lat'].fillna(0)
+                for col in df.columns:
+                    df[col]= df[col].astype(str).str.encode('utf-8','replace').str.decode('utf-8')
                 # print(df)
                 dataInsertionTuples= [tuple(x) for x in df.values]
                 print(dataInsertionTuples)
@@ -321,12 +323,12 @@ if __name__ == "__main__":
         # the scraper will search by defaukt for:
             search_for = f'Hotels {i}'
     
-    # total number of products to scrape. Default is 10
+    # total number of products to scrape. Default is 100
     if args.total:
         total = args.total
     else:
-        total = 5
+        total = 100
         
     main()
-    ETL_SQL()
+    # ETL_SQL()
 
