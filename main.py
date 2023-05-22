@@ -3,8 +3,8 @@ from dataclasses import dataclass, asdict, field
 import pandas as pd
 import argparse
 import re
-
-
+import geocoder
+import subprocess
 @dataclass
 class Business:
     """holds business data
@@ -46,6 +46,8 @@ class BusinessList:
         """
         self.dataframe().to_csv(f'{filename}.csv', index=False,encoding='utf-16')
 
+    
+
 
 def main():
     
@@ -62,7 +64,8 @@ def main():
             "Ben Tre",
             "Bien Hoa",
             "Buon Me Thuot",
-            "Cam Ranh",
+            "Cam Ranh"
+            ,
             "Can Tho",
             "Cao Lanh",
             "Cho Lon",
@@ -96,7 +99,9 @@ def main():
             "Tuy Hoa",
             "Vinh",
             "Vinh Long",
-            "Vung Tau"]
+            "Vung Tau"
+            ]
+        # citi_list_1=["Hung Yen", "Ha Noi"]
         for x in citi_list_1:
             page.locator('//input[@id="searchboxinput"]').fill(f'Hotels {x}')
             # page.wait_for_timeout(3000)
@@ -130,7 +135,6 @@ def main():
                         print(f'Currently Scraped: ', page.locator('//div[@role="article"]').count())
             
             business_list = BusinessList()
-            
             # scraping
             for listing in listings:
             
@@ -142,7 +146,6 @@ def main():
                 website_xpath = '//a[@data-item-id="authority"]//div[contains(@class, "fontBodyMedium")]'
                 phone_number_xpath = '//button[contains(@data-item-id, "phone:tel:")]//div[contains(@class, "fontBodyMedium")]'
                 reviews_span_xpath = '//span[@role="img"]'
-                coordinates= '//*[@id="action-menu"]/div[1]/div[3]/div[1]'
                 
                 business = Business()
                 
@@ -152,6 +155,12 @@ def main():
                     business.name = ''
                 if page.locator(address_xpath).count() > 0:
                     business.address = page.locator(address_xpath).inner_text()
+                    if page.locator(address_xpath).inner_text() != None:
+                        result = geocoder.arcgis(location=page.locator(address_xpath).inner_text())
+                        business.lat,business.long = result.latlng
+                    else:
+                        business.lat=''
+                        business.long=''
                 else:
                     business.address = ''
                 if page.locator(website_xpath).count() > 0:
@@ -165,7 +174,7 @@ def main():
                 if listing.locator(reviews_span_xpath).count() > 0:
                     business.reviews_average = float(listing.locator(reviews_span_xpath).get_attribute('aria-label').split()[0].replace(',','.').strip())
                     business.reviews_count = int(re.sub(r'[\W_]','',listing.locator(reviews_span_xpath).get_attribute('aria-label').split()[2].strip()))
-                    print(listing.locator(reviews_span_xpath).get_attribute('aria-label'))
+                    # print(listing.locator(reviews_span_xpath).get_attribute('aria-label'))
                 else:
                     business.reviews_average = ''
                     business.reviews_count = ''
@@ -173,11 +182,11 @@ def main():
                 business_list.business_list.append(business)
         
         # saving to both excel and csv just to showcase the features.
-                business_list.save_to_excel(f'google_maps_{x}_data')
-                business_list.save_to_csv(f'google_maps_{x}_data')
+            business_list.save_to_excel(f'google_maps_{x}_data')
+            business_list.save_to_csv(f'google_maps_{x}_data')
                 
         browser.close()
-        
+      
 
 if __name__ == "__main__":
     
